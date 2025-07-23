@@ -1,6 +1,6 @@
-torch
-torchvision
-numpy
+fastapi
+uvicorn
 Pillow
+torch
 opencv-python
-rembg
+requests
