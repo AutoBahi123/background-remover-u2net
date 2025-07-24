@@ -54,9 +54,11 @@ def process_and_upload(image_bytes, filename, output_folder_id):
     image = Image.open(BytesIO(no_bg)).convert("RGBA")
     new_size = (image.width * 2, image.height * 2)
     image = image.resize(new_size, Image.LANCZOS)
+
     output_io = BytesIO()
     image.save(output_io, format="PNG", dpi=(300, 300))
     output_io.seek(0)
+
     output_filename = f"{os.path.splitext(filename)[0]}_processed.png"
     upload_image(output_io, output_filename, output_folder_id)
 
