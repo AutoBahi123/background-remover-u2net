@@ -2,6 +2,7 @@ import os
 from io import BytesIO
 from PIL import Image
 from rembg import remove
+
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
@@ -43,22 +44,21 @@ def download_image(file_id):
     fh.seek(0)
     return fh
 
+def upload_image(image_bytes, filename, folder_id):
+    file_metadata = {"name": filename, "parents": [folder_id]}
+    media = MediaIoBaseUpload(image_bytes, mimetype="image/png")
+    drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+
 def process_and_upload(image_bytes, filename, output_folder_id):
     no_bg = remove(image_bytes.read())
     image = Image.open(BytesIO(no_bg)).convert("RGBA")
     new_size = (image.width * 2, image.height * 2)
     image = image.resize(new_size, Image.LANCZOS)
-
     output_io = BytesIO()
     image.save(output_io, format="PNG", dpi=(300, 300))
     output_io.seek(0)
-
-    file_metadata = {
-        "name": f"{os.path.splitext(filename)[0]}_processed.png",
-        "parents": [output_folder_id]
-    }
-    media = MediaIoBaseUpload(output_io, mimetype="image/png")
-    drive_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+    output_filename = f"{os.path.splitext(filename)[0]}_processed.png"
+    upload_image(output_io, output_filename, output_folder_id)
 
 def main():
     input_folder_id = get_folder_id(INPUT_FOLDER_NAME)
